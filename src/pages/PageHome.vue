@@ -1,6 +1,6 @@
 <template>
   <q-page class="relative-position">
-    <q-scroll-area class="absolute fullscreen ">
+    <q-scroll-area class="absolute full-width full-height ">
     <div class="q-py-lg q-px-md row items-end q-col-gutter-md">
       <div class="col">
         <q-input
@@ -82,11 +82,12 @@
             icon="fas fa-retweet"
             size="sm" 
           />
-          <q-btn 
+          <q-btn
+          @click="toggledLiked(qweet)"
             flat 
-            round 
-            color="grey"
-            icon="far fa-heart"
+            round
+            :color="qweet.liked ? 'pink' : 'grey'"
+            :icon="qweet.liked ? 'fas fa-heart' : 'far fa-heart'"
             size="sm" 
           />
           <q-btn
@@ -118,14 +119,18 @@ export default {
     return {
       newQweetContent: "",
       qweets: [
-        // {
-        //   content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur assumenda impedit mollitia animi neque quas repudiandae maiores ducimus quae cupiditate. Cumque, officia cum! Dicta eum totam modi atque in laudantium.',
-        //   date: 1615330332221
-        // },
-        // {
-        //   content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur assumenda impedit mollitia animi neque quas repudiandae maiores ducimus quae cupiditate. Cumque, officia cum! Dicta eum totam modi atque in laudantium.',
-        //   date: 1615330371814
-        // },
+        //  {
+        //    id: 1,
+        //    content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur assumenda impedit mollitia animi neque quas repudiandae maiores ducimus quae cupiditate. Cumque, officia cum! Dicta eum totam modi atque in laudantium.',
+        //    date: 1615330332221,
+        //    liked: false
+        //  },
+        //  {
+        //    id: 2,
+        //    content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur assumenda impedit mollitia animi neque quas repudiandae maiores ducimus quae cupiditate. Cumque, officia cum! Dicta eum totam modi atque in laudantium.',
+        //    date: 1615330371814,
+        //    liked: true
+        //  },
       ]
     };
   },
@@ -133,7 +138,8 @@ export default {
     addNewQweet() {
       let newQweet = {
         content: this.newQweetContent,
-        date: Date.now()
+        date: Date.now(),
+        liked: false
       }
       // this.qweets.unshift(newQweet)
       db.collection("qweets").add(newQweet).then((docRef) => {
@@ -148,6 +154,17 @@ export default {
         console.log("Document successfully deleted!");
       }).catch((error) => {
           console.error("Error removing document: ", error);
+      });
+    },
+    toggledLiked(qweet) {
+      db.collection("qweets").doc(qweet.id).update({
+        liked: !qweet.liked
+      })
+      .then(() => {
+        console.log("Document successfully updated!");
+      })
+      .catch((error) => {
+        console.error("Error updating document: ", error);
       });
     }
   },
@@ -167,6 +184,8 @@ export default {
             }
             if (change.type === 'modified') {
                 console.log('Modified qweet: ', qweetChange)
+                let index = this.qweets.findIndex(qweet => qweet.id === qweetChange.id)
+                Object.assign(this.qweets[index], qweetChange)
             }
             if (change.type === 'removed') {
                 console.log('Removed qweet: ', qweetChange)
